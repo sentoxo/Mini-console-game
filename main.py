@@ -1,4 +1,4 @@
-import os, time
+import os, time, sys
 import keyboard
 
 WIDTH = 40
@@ -10,8 +10,8 @@ class Object():
     texture: str
     sizeX: int
     sizeY: int
-    speedX: int = 0
-    speedY: int = 0
+    _speedX: float = 0.0
+    _speedY: float = 0.0
     
     def __init__(self, texture: str, sizeX: int, sizeY: int, posX: int = 1, posY: int = 1) -> None:
         self.texture = texture
@@ -20,9 +20,15 @@ class Object():
         self.posX = posX
         self.posY = posY
         
-    def setSpeed(self, speedX: int = 0, speedY: int = 0) -> None:
-        self.speedX = speedX
-        self.speedY = speedY
+    def updateGravity(self) -> None:
+        self._speedY += 0.5 #gravity constant
+        self.posY += int(self._speedY)
+        if self.posY >= HEIGHT-self.sizeY-1:
+            self.posY = HEIGHT-self.sizeY-1
+            self._speedY = 0.0
+        elif self.posY < 1:
+            self.posY = 1
+            self._speedY = 0.0
     
     def move(self, course: str) -> None:
         if course == 'up' and self.posY>1:
@@ -33,6 +39,10 @@ class Object():
             self.posX -= 1
         elif course == 'right' and self.posX<(WIDTH-1-self.sizeX):
             self.posX += 1
+    
+    def jump(self, jumpPower: float) -> None:
+        if self._speedY >= 0:
+            self._speedY -= jumpPower
         
 
 def generateBorder(buf: list, x: int, y: int) -> None:
@@ -47,41 +57,40 @@ def addObjectToBuf(buf: list, obj: Object) -> None:
     for i, s in enumerate(obj.texture):
         buf[obj.posY+(i//obj.sizeY)][obj.posX+(i%obj.sizeX)] = s
     
-def render(buf: list) -> None:
-    os.system("cls")
+def render(buf: list, f: int) -> None: 
     s = ''
     for line in buf:
         for char in line:
             s += char + ' '
         s += '\n'
-    print(s)    
+    s += str(f)
+    os.system("cls")
+    sys.stdout.write(s)    
+    
         
 def loop() -> None:
     frameI = 0 
-    ball = Object('OOOOOOOOO', 3, 3)
-    
+    ball = Object('OOOOOOOOO', 3, 3, 2, 6)
+
     while 1:
         frameI += 1
         buf = [[' ']*WIDTH for i in range(HEIGHT)]
         
-        if keyboard.is_pressed("a"):
-            ball.move('left')
-        elif keyboard.is_pressed("d"):
-            ball.move('right')
-        elif keyboard.is_pressed("w"):
-            ball.move('up')
-        elif keyboard.is_pressed("s"):
-            ball.move('down')
+        if keyboard.is_pressed("space"):
+            ball.jump(3)
+            
+        ball.updateGravity()
         generateBorder(buf, WIDTH-1, HEIGHT-1)
-        addObjectToBuf(buf, ball)
-        render(buf)
-        print(str(frameI))
-        time.sleep(0.1)
-    
+        addObjectToBuf(buf, ball)      
+        render(buf, frameI)
+        time.sleep(0.05)
     
     
 def main():
-    loop()
+    try:
+        loop()
+    except KeyboardInterrupt:
+        pass
     
 if __name__ == "__main__":
     main()
