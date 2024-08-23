@@ -1,5 +1,5 @@
 import os, time, sys
-import logging, random
+import logging, random, time
 import keyboard
 
 WIDTH = 40
@@ -8,6 +8,7 @@ DEBUG = False
 
 
 class Object():
+    name: str
     counter: int = 0
     id: int
     posX: int
@@ -18,7 +19,8 @@ class Object():
     _speedX: float = 0.0
     _speedY: float = 0.0
     
-    def __init__(self, texture: str, sizeX: int, sizeY: int, posX: int = 1, posY: int = 1) -> None:
+    def __init__(self, texture: str, sizeX: int, sizeY: int, posX: int = 1,
+                 posY: int = 1, name: str = '') -> None:
         self.texture = texture
         self.sizeX = sizeX
         self.sizeY = sizeY
@@ -26,12 +28,13 @@ class Object():
         self.posY = posY
         Object.counter +=1
         self.id = Object.counter
+        self.name = name
         
     def __str__(self) -> str:
         return f'Object {self.id} -> Size X/Y: {self.sizeX}/{self.sizeY}, Pos X/Y: {self.posX}/{self.posY}'
         
     def updateGravity(self) -> None:
-        self._speedY += 0.5 #gravity constant
+        self._speedY += 0.4 #gravity constant
         self.posY += int(self._speedY)
         if self.posY >= HEIGHT-self.sizeY-1:
             self.posY = HEIGHT-self.sizeY-1
@@ -52,7 +55,7 @@ class Object():
     
     def jump(self, jumpPower: float) -> None:
         if self._speedY >= 0:
-            self._speedY -= jumpPower
+            self._speedY = -jumpPower
         
 
 def generateBorder(buf: list, x: int, y: int) -> None:
@@ -81,11 +84,11 @@ def render(buf: list, f: int) -> None:
     os.system("cls")
     sys.stdout.write(s)    
     
-def detectCollision(player: Object, objects: list) -> bool:
+def detectCollision(player: Object, objects: list) -> Object:
     for x in objects:
         if isCollision(player, x):
-            return True
-    return False
+            return x
+    return None
        
 def isCollision(rect1: Object, rect2: Object) -> bool:
     if rect1.posX >= rect2.posX + rect2.sizeX or rect2.posX >= rect1.posX + rect1.sizeX:
@@ -102,6 +105,7 @@ def loop() -> None:
     textLines = '' 
     points = 0
     speed = 40
+    secondsAtStart = time.time()
 
     while 1:
         frameI += 1
@@ -121,8 +125,11 @@ def loop() -> None:
         generateBorder(buf, WIDTH-1, HEIGHT-1)
         addObjectToBuf(buf, ball)
         
+        if frameI > 100 and random.randint(1, 200)==100:
+            objects.append(ob := Object('$$$$', 2, 2, 40, random.randint(2, 35) , 'bonus') )
+        
         if frameI % speed == 0:
-            objects.append(ob := Object('OOOOO'*10, 5, 10, 40, random.randint(1, 29)) )
+            objects.append(ob := Object('OOOOO'*10, 5, 10, 40, random.randint(1, 29), 'wall') )
             logging.debug(str(ob))
         
         for i in range(len(objects)):
@@ -131,15 +138,21 @@ def loop() -> None:
             
         for i in range(len(objects)):
             if objects[i].posX <= -5:
+                if objects[i].name == 'wall':
+                    points += 1
                 del objects[i]
-                points += 1
                 break
         
-        textLines = f"Frames {frameI} \nPoints: {points}\n"
+        date = int(time.time()-secondsAtStart)
+        textLines = f"Frames {frameI} \nTime: {date//60}:{date%60}\nPoints: {points}\n"
         render(buf, textLines)
         time.sleep(0.05)
-        if detectCollision(ball, objects):
-            raise exit("Game over motherfucker") 
+        if ob := detectCollision(ball, objects):
+            if ob.name == 'wall':
+                raise exit("Game over motherfucker") 
+            elif ob.name == 'bonus':
+                points += 5
+                objects.remove(ob)
     
     
 def main():
