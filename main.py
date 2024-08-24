@@ -5,11 +5,11 @@ import keyboard
 WIDTH = 40
 HEIGHT = 40
 DEBUG = False
-
+GRAVITY_CONSTANT = 0.4
 
 class Object():
     name: str
-    counter: int = 0
+    _counter: int = 0
     id: int
     posX: int
     posY: int
@@ -26,15 +26,15 @@ class Object():
         self.sizeY = sizeY
         self.posX = posX
         self.posY = posY
-        Object.counter +=1
-        self.id = Object.counter
+        Object._counter +=1
+        self.id = Object._counter
         self.name = name
         
     def __str__(self) -> str:
         return f'Object {self.id} -> Size X/Y: {self.sizeX}/{self.sizeY}, Pos X/Y: {self.posX}/{self.posY}'
         
     def updateGravity(self) -> None:
-        self._speedY += 0.4 #gravity constant
+        self._speedY += GRAVITY_CONSTANT
         self.posY += int(self._speedY)
         if self.posY >= HEIGHT-self.sizeY-1:
             self.posY = HEIGHT-self.sizeY-1
@@ -149,7 +149,7 @@ def loop() -> None:
         time.sleep(0.05)
         if ob := detectCollision(ball, objects):
             if ob.name == 'wall':
-                raise exit("Game over motherfucker") 
+                exit("Game over") 
             elif ob.name == 'bonus':
                 points += 5
                 objects.remove(ob)
