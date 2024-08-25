@@ -6,6 +6,7 @@ WIDTH = 40
 HEIGHT = 40
 DEBUG = False
 GRAVITY_CONSTANT = 0.4
+FRAMERATE = 1 / 20
 
 class Object():
     name: str
@@ -96,7 +97,13 @@ def isCollision(rect1: Object, rect2: Object) -> bool:
     if rect1.posY >= rect2.posY + rect2.sizeY or rect2.posY >= rect1.posY + rect1.sizeY:
         return False
     return True
-      
+
+def returnAverageFPS(deltaTime: float) -> int:
+    if deltaTime<0.001: deltaTime=0.001
+    avg = (returnAverageFPS.avg*4 + deltaTime) / 5 #reducing the pace of change
+    returnAverageFPS.avg = avg
+    return int(1/avg)
+returnAverageFPS.avg = 20.0
         
 def loop() -> None:
     frameI = 0 
@@ -106,7 +113,9 @@ def loop() -> None:
     points = 0
     speed = 40
     secondsAtStart = time.time()
-
+    ms = time.time_ns()
+    deltaT = 1
+    
     while 1:
         frameI += 1
         buf = [[' ']*WIDTH for i in range(HEIGHT)]
@@ -130,7 +139,7 @@ def loop() -> None:
         
         if frameI % speed == 0:
             objects.append(ob := Object('OOOOO'*10, 5, 10, 40, random.randint(1, 29), 'wall') )
-            logging.debug(str(ob))
+            #logging.debug(str(ob))
         
         for i in range(len(objects)):
             addObjectToBuf(buf, objects[i])
@@ -142,22 +151,26 @@ def loop() -> None:
                     points += 1
                 del objects[i]
                 break
-        
-        date = int(time.time()-secondsAtStart)
-        textLines = f"Frames {frameI} \nTime: {date//60}:{date%60}\nPoints: {points}\n"
-        render(buf, textLines)
-        time.sleep(0.05)
+            
         if ob := detectCollision(ball, objects):
             if ob.name == 'wall':
                 exit("Game over") 
             elif ob.name == 'bonus':
                 points += 5
                 objects.remove(ob)
-    
+        
+        date = int(time.time()-secondsAtStart)
+        textLines = f"FPS: {returnAverageFPS(max(deltaT, FRAMERATE))} \nTime: {date//60}:{date%60}\nPoints: {points}\n"
+        render(buf, textLines)
+        deltaT = (time.time_ns()-ms)/pow(10,9)
+        time.sleep(max(FRAMERATE-deltaT, 0))
+        ms = time.time_ns()
+        logging.debug(deltaT)
+        
     
 def main():
     logging.basicConfig(filename='app.log', filemode='w', level=logging.DEBUG, 
-                        format='%(asctime)s - %(levelname)s - %(message)s')
+                        format='%(asctime)s - %(levelname)s - %(funcName)s - %(message)s')
     try:
         loop()
     except KeyboardInterrupt:
