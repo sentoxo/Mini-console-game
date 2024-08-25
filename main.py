@@ -6,7 +6,7 @@ WIDTH = 40
 HEIGHT = 40
 DEBUG = False
 GRAVITY_CONSTANT = 0.4
-FRAMERATE = 1 / 20
+FRAMERATE = 1 / 1000
 
 class Object():
     name: str
@@ -34,9 +34,9 @@ class Object():
     def __str__(self) -> str:
         return f'Object {self.id} -> Size X/Y: {self.sizeX}/{self.sizeY}, Pos X/Y: {self.posX}/{self.posY}'
         
-    def updateGravity(self) -> None:
-        self._speedY += GRAVITY_CONSTANT
-        self.posY += int(self._speedY)
+    def updateGravity(self, deltaTime: float) -> None:
+        self._speedY += GRAVITY_CONSTANT * 20 * deltaTime
+        self.posY += self._speedY * 20 * deltaTime
         if self.posY >= HEIGHT-self.sizeY-1:
             self.posY = HEIGHT-self.sizeY-1
             self._speedY = 0.0
@@ -71,7 +71,7 @@ def addObjectToBuf(buf: list, obj: Object) -> None:
     #logging.debug(str(obj))
     for i, s in enumerate(obj.texture):
         try:
-            buf[obj.posY+(i//obj.sizeX)][max(obj.posX+(i%obj.sizeX),0)] = s
+            buf[int(obj.posY+(i//obj.sizeX))][int(max(obj.posX+(i%obj.sizeX),0))] = s
         except IndexError:
             pass
     
@@ -105,10 +105,11 @@ def isCollision(rect1: Object, rect2: Object) -> bool:
 
 def returnAverageFPS(deltaTime: float) -> int:
     if deltaTime<0.001: deltaTime=0.001
+    elif deltaTime>1: deltaTime=1
     avg = (returnAverageFPS.avg*4 + deltaTime) / 5 #reducing the pace of change
     returnAverageFPS.avg = avg
     return int(1/avg)
-returnAverageFPS.avg = 20.0
+returnAverageFPS.avg = 0.02
         
 def loop() -> None:
     frameI = 0 
@@ -116,13 +117,17 @@ def loop() -> None:
     objects = [] 
     textLines = '' 
     points = 0
-    speed = 40
+    speed = 2.5
     secondsAtStart = time.time()
     ms = time.time_ns()
-    deltaT = 1
+    deltaT = 0.1
+    timer1, timer2, timer3 = 0.0, 0.0, 0.0
     
     while 1:
         frameI += 1
+        timer1 += max(deltaT, FRAMERATE)
+        timer2 += max(deltaT, FRAMERATE)
+        timer3 += max(deltaT, FRAMERATE)
         buf = [[' ']*WIDTH for i in range(HEIGHT)]
         
         if keyboard.is_pressed("space"):
@@ -132,23 +137,26 @@ def loop() -> None:
         elif keyboard.is_pressed("esc"):
             exit()
  
-        if frameI % 40 == 0:
-            speed -= 1
+        if timer1 >= 3:                   
+            timer1 = 0.0
+            speed -= 0.1
 
-        ball.updateGravity()
+        ball.updateGravity(max(deltaT, FRAMERATE))
         generateBorder(buf, WIDTH-1, HEIGHT-1)
         addObjectToBuf(buf, ball)
         
-        if frameI > 100 and random.randint(1, 200)==100:
+        if timer3 >= 5.0:
+            timer3 = 0.0
             objects.append(ob := Object('$$$$', 2, 2, 40, random.randint(2, 35) , 'bonus') )
         
-        if frameI % speed == 0:
+        if timer2 >= speed:
+            timer2 = 0.0
             objects.append(ob := Object('OOOOO'*10, 5, 10, 40, random.randint(1, 29), 'wall') )
             #logging.debug(str(ob))
         
         for i in range(len(objects)):
             addObjectToBuf(buf, objects[i])
-            objects[i].posX -=1 
+            objects[i].posX -= 1 * 20 * max(deltaT, FRAMERATE)
             
         for i in range(len(objects)):
             if objects[i].posX <= -5:
