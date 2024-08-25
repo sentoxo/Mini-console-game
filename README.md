@@ -1,49 +1,49 @@
-#Mini console game in python.
+# Mini console game in python.
+Welcome to **Mini Console Game**, a not so fun and not really challenging game where you control a player who must jump to avoid obstacles and catch prizes to score points. The game is written in Python and runs in the console.
 
 
 
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#             O O O O O                                                       # 
-#             O O O O O                                                       # 
-#             O O O O O                                                       # 
-#             O O O O O                                                       # 
-#             O O O O O                                                       # 
-#             O O O O O                                                       # 
-#             O O O O O                                                       # 
-#             O O O O O                                                       # 
-#             O O O O O                                                       # 
-#       / O \ O O O O O                                                       # 
-#       O O O                                                                 # 
-#       \ O /                                                                 # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-#                                                                             # 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #   
-Frames 111
-Time: 0:7
-Points: 0
-Game over
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #         O O O O O                                                           # 
+    #         O O O O O                                                           # 
+    #         O O O O O                                                           # 
+    #         O O O O O                                                 $ $       # 
+    #         O O O O O                                                 $ $       # 
+    #         O O O O O                                                           # 
+    #         O O O O O                                                           O 
+    #         O O O O O                                                           O 
+    #         O O O O O                                                           O 
+    #         O O O O O                                                           O 
+    #       / O \                                                                 O 
+    #       O O O                                                                 O 
+    #       \ O /                                                                 O 
+    #                                                                             O 
+    #                                                                             O 
+    #                                                                             O 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    #                                                                             # 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #   
+    FPS: 19
+    Time: 0:7
+    Points: 1
+    Game over
