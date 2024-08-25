@@ -1,4 +1,4 @@
-import os, time, sys
+import os, time, sys, platform
 import logging, random, time
 import keyboard
 
@@ -75,14 +75,19 @@ def addObjectToBuf(buf: list, obj: Object) -> None:
         except IndexError:
             pass
     
-def render(buf: list, f: int) -> None: 
+def render(buf: list, f: int) -> None:
+    if not hasattr(render, 'clear'):
+        if platform.system() == 'Windows':
+            render.clear = 'cls'
+        else:
+            render.clear = 'clear'
     s = ''
     for line in buf:
         for char in line:
             s += char + ' '
         s += '\n'
     s += str(f)
-    os.system("cls")
+    os.system(render.clear)
     sys.stdout.write(s)    
     
 def detectCollision(player: Object, objects: list) -> Object:
