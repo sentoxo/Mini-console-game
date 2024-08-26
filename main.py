@@ -58,6 +58,38 @@ class Object():
         if self._speedY >= 0:
             self._speedY = -jumpPower
         
+class Timer():
+    _timers = []
+    def __init__(self) -> None:
+        pass
+
+    @classmethod
+    def add(cls, func, tB: float) -> int:
+        cls._timers.append([func, tB, 0.0])
+        return len(cls._timers)-1
+        #logging.debug(f"Timer.add: {func}, {tB}")
+        
+    @classmethod
+    def modify(cls, id: int, newTB) -> None:
+        if cls._timers[id]:
+            cls._timers[id][1] = newTB 
+            
+    @classmethod
+    def read(cls, id: int) -> list:
+        if cls._timers[id]:
+            return cls._timers[id]
+    
+    @classmethod
+    def update(cls, deltaT: float) -> None:
+        for i in range(len(cls._timers)):
+            (func, tB, timerX) = cls._timers[i]
+            #logging.debug(f"Timer.update: {func}, {tB}, {timerX}")
+            if timerX >= tB:
+                func()
+                cls._timers[i][2] = 0.0
+            else:
+                cls._timers[i][2] += deltaT
+            
 
 def generateBorder(buf: list, x: int, y: int) -> None:
     for i in range(x):
@@ -110,7 +142,7 @@ def returnAverageFPS(deltaTime: float) -> int:
     returnAverageFPS.avg = avg
     return int(1/avg)
 returnAverageFPS.avg = 0.02
-        
+
 def loop() -> None:
     frameI = 0 
     ball = Object('/O\OOO\O/', 3, 3, 4, 6)
@@ -121,13 +153,13 @@ def loop() -> None:
     secondsAtStart = time.time()
     ms = time.time_ns()
     deltaT = 0.1
-    timer1, timer2, timer3 = 0.0, 0.0, 0.0
+    Timer.add(lambda: objects.append(ob := Object('$$$$', 2, 2, 40, random.randint(2, 35) , 'bonus') ), 5.0)
+    wallTimerID = Timer.add(lambda: objects.append(ob := Object('OOOOO'*10, 5, 10, 40, random.randint(1, 29), 'wall') ), 2.0)
+    Timer.add(lambda: Timer.modify(wallTimerID, Timer.read(wallTimerID)[1]-0.1) ,3.0)
     
     while 1:
+        Timer.update(deltaT)
         frameI += 1
-        timer1 += max(deltaT, FRAMERATE)
-        timer2 += max(deltaT, FRAMERATE)
-        timer3 += max(deltaT, FRAMERATE)
         buf = [[' ']*WIDTH for i in range(HEIGHT)]
         
         if keyboard.is_pressed("space"):
@@ -136,23 +168,10 @@ def loop() -> None:
             keyboard.wait('p')
         elif keyboard.is_pressed("esc"):
             exit()
- 
-        if timer1 >= 3:                   
-            timer1 = 0.0
-            speed -= 0.1
 
         ball.updateGravity(max(deltaT, FRAMERATE))
         generateBorder(buf, WIDTH-1, HEIGHT-1)
         addObjectToBuf(buf, ball)
-        
-        if timer3 >= 5.0:
-            timer3 = 0.0
-            objects.append(ob := Object('$$$$', 2, 2, 40, random.randint(2, 35) , 'bonus') )
-        
-        if timer2 >= speed:
-            timer2 = 0.0
-            objects.append(ob := Object('OOOOO'*10, 5, 10, 40, random.randint(1, 29), 'wall') )
-            #logging.debug(str(ob))
         
         for i in range(len(objects)):
             addObjectToBuf(buf, objects[i])
@@ -164,7 +183,11 @@ def loop() -> None:
                     points += 1
                 del objects[i]
                 break
-            
+        
+        date = int(time.time()-secondsAtStart)
+        textLines = f"FPS: {returnAverageFPS(max(deltaT, FRAMERATE))} \nTime: {date//60}:{date%60}\nPoints: {points}\n"
+        render(buf, textLines)
+        
         if ob := detectCollision(ball, objects):
             if ob.name == 'wall':
                 exit("Game over") 
@@ -172,13 +195,10 @@ def loop() -> None:
                 points += 5
                 objects.remove(ob)
         
-        date = int(time.time()-secondsAtStart)
-        textLines = f"FPS: {returnAverageFPS(max(deltaT, FRAMERATE))} \nTime: {date//60}:{date%60}\nPoints: {points}\n"
-        render(buf, textLines)
         deltaT = (time.time_ns()-ms)/pow(10,9)
         time.sleep(max(FRAMERATE-deltaT, 0))
         ms = time.time_ns()
-        logging.debug(deltaT)
+        #logging.debug(deltaT)
         
     
 def main():
